@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Surprise!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gold: #FFD700;
+            --box-color: #E63946;
+            --box-shadow: #9B2226;
+            --ribbon-color: #FFD700;
+            --ribbon-shadow: #DAA520;
+            --bg-dark: #1a1a2e;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh; /* Full viewport height */
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* --- Animated Background Particles --- */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            animation: floatUp linear infinite;
+            bottom: -10px;
+            pointer-events: none;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-100vh) scale(0); opacity: 0; }
+        }
+
+        /* --- The Stage (Responsive Container) --- */
+        .stage {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 20px;
+            /* Scale down on small mobile screens */
+            transform-origin: bottom center;
+            transition: transform 0.3s ease;
+        }
+
+        /* Intelligent Scaling for Mobile */
+        @media (max-width: 380px), (max-height: 650px) {
+            .stage { transform: scale(0.85); }
+        }
+        
+        @media (max-height: 550px) {
+            .stage { transform: scale(0.7); }
+        }
+
+        /* --- The Ticket (Hidden initially) --- */
+        .ticket-card {
+            position: absolute;
+            bottom: 50px;
+            width: 280px;
+            max-width: 85vw; /* Responsive width */
+            max-height: 65vh; /* Prevent overflow on small screens */
+            overflow-y: auto; /* Allow scrolling if content is too long */
+            background: #fffcf5;
+            color: #333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 2px solid var(--primary-gold);
+            z-index: 5;
+            
+            /* Initial State */
+            transform: translateY(100px) scale(0.8);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            
+            /* Hide scrollbar for aesthetic */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .ticket-card::-webkit-scrollbar { display: none; }
+
+        .ticket-card img {
+            max-width: 140px;
+            height: auto;
+            margin-bottom: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            transform: rotate(-90deg); /* Rotated 90 degrees left */
+        }
+
+        .offer-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            color: #D32F2F;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .offer-sub {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background: var(--box-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(230, 57, 70, 0.3);
+            transition: transform 0.2s;
+        }
+        .cta-btn:active { transform: scale(0.95); }
+
+        .address {
+            font-size: 0.65rem;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            line-height: 1.4;
+        }
+
+        /* --- Improved CSS Gift Box --- */
+        .gift-container {
+            position: relative;
+            width: 240px;
+            height: 200px;
+            cursor: pointer;
+            z-index: 10;
+            /* Periodic Shake Animation - 2.5s total (approx 2s pause + 0.5s shake) */
+            animation: idleShake 2.5s infinite ease-in-out;
+        }
+
+        @keyframes idleShake {
+            /* Stays still for the first 80% of the time (approx 2 seconds) */
+            0%, 80% { transform: rotate(0deg) scale(1); }
+            /* Shakes during the last 20% */
+            85% { transform: rotate(-3deg) scale(1.02); }
+            90% { transform: rotate(3deg) scale(1.02); }
+            95% { transform: rotate(-3deg) scale(1.02); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        /* Box Base */
+        .box-body {
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            width: 200px;
+            height: 150px;
+            background: linear-gradient(to right, var(--box-color) 0%, var(--box-shadow) 100%);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+
+        /* Vertical Ribbon on Body */
+        .box-body::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 100%;
+            background: linear-gradient(to right, var(--ribbon-color), var(--ribbon-shadow));
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        /* Box Lid */
+        .box-lid {
+            position: absolute;
+            bottom: 130px; /* Overlaps body slightly */
+            left: 0;
+            width: 240px;
+            height: 60px;
+            background: linear-gradient(to right, var(--box-color), var(--box-shadow));
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 11;
+            transition: transform 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Vertical Ribbon on Lid */
+        .box-lid::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background: linear-gradient(to right, var(--ribbon-color), var(--ribbon-shadow));
+        }
+
+        /* The Bow (CSS Art) */
+        .box-bow {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 40px;
+            z-index: 12;
+        }
+        
+        /* Left Loop */
+        .box-bow::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border: 6px solid var(--ribbon-color);
+            border-radius: 50px 50px 0 50px;
+            transform: rotate(-15deg);
+            background: radial-gradient(circle at center, transparent 40%, var(--ribbon-shadow) 100%);
+        }
+        /* Right Loop */
+        .box-bow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            border: 6px solid var(--ribbon-color);
+            border-radius: 50px 50px 50px 0;
+            transform: rotate(15deg);
+            background: radial-gradient(circle at center, transparent 40%, var(--ribbon-shadow) 100%);
+        }
+
+        .tap-text {
+            position: absolute;
+            bottom: -40px;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            animation: pulseText 2s infinite;
+        }
+        @keyframes pulseText { 50% { opacity: 0.4; } }
+
+        /* --- Open State Classes --- */
+        .stage.is-open .gift-container {
+            animation: none; /* Stop shaking */
+            cursor: default;
+        }
+
+        .stage.is-open .box-lid {
+            /* Lid flies up and rotates away */
+            transform: translateY(-250px) rotate(20deg) translateX(40px);
+            opacity: 0; 
+        }
+
+        .stage.is-open .ticket-card {
+            /* Ticket slides up */
+            transform: translateY(-120px) scale(1);
+            opacity: 1;
+            z-index: 20; /* Moves in front */
+            /* Add floating animation after appearing */
+            animation: floatTicket 3s ease-in-out infinite;
+            animation-delay: 0.8s;
+        }
+
+        /* Adjust ticket jump on small screens */
+        @media (max-height: 650px) {
+            .stage.is-open .ticket-card {
+                transform: translateY(-80px) scale(1);
+            }
+        }
+
+        .stage.is-open .tap-text { display: none; }
+
+        @keyframes floatTicket {
+            0%, 100% { transform: translateY(-120px) rotate(0deg); }
+            50% { transform: translateY(-130px) rotate(1deg); }
+        }
+
+        /* Responsive Float Animation */
+        @media (max-height: 650px) {
+            @keyframes floatTicket {
+                0%, 100% { transform: translateY(-80px) rotate(0deg); }
+                50% { transform: translateY(-90px) rotate(1deg); }
+            }
+        }
+
+        /* Confetti Canvas */
+        #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti"></canvas>
+
+    <div class="stage" id="stage">
+        
+        <!-- Ticket -->
+        <div class="ticket-card">
+            <!-- REPLACE SRC WITH YOUR LOGO -->
+            <img src="sponsor.png" alt="Sponsor Logo">
+            <h1 class="offer-title">BUY 1 GET 1</h1>
+            <p class="offer-sub">Surprise Gift</p>
+            
+            <a href="https://cake.com" class="cta-btn">Visit Cake.com</a>
+            
+            <div class="address">
+                Thrissur Mannamangalam Rd, Nehru Nagar,<br>
+                Kuttanellur, Thrissur, Kerala 680005
+            </div>
+        </div>
+
+        <!-- Gift Box -->
+        <div class="gift-container" id="giftBox" onclick="openGift()">
+            <div class="box-lid">
+                <div class="box-bow"></div>
+            </div>
+            <div class="box-body"></div>
+            <div class="tap-text">Tap to Open</div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Generate Background Particles ---
+        function createParticles() {
+            const body = document.body;
+            for(let i=0; i<20; i++) {
+                let p = document.createElement('div');
+                p.classList.add('particle');
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.width = p.style.height = (Math.random() * 5 + 2) + 'px';
+                p.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                p.style.animationDelay = (Math.random() * 5) + 's';
+                body.appendChild(p);
+            }
+        }
+        createParticles();
+
+        // --- Interaction Logic ---
+        let opened = false;
+        function openGift() {
+            if (opened) return;
+            opened = true;
+
+            const stage = document.getElementById('stage');
+            
+            // Trigger Animation
+            stage.classList.add('is-open');
+
+            // Trigger Confetti
+            fireConfetti();
+        }
+
+        // --- Confetti Engine ---
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function fireConfetti() {
+            const colors = ['#E63946', '#FFD700', '#F1FAEE', '#A8DADC'];
+            
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 10 + 5,
+                    speedX: (Math.random() - 0.5) * 15,
+                    speedY: (Math.random() - 1) * 15,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    spin: Math.random() * 0.2 - 0.1,
+                    angle: Math.random() * 360
+                });
+            }
+            requestAnimationFrame(renderConfetti);
+        }
+
+        function renderConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach((p, i) => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.speedY += 0.2; // Gravity
+                p.angle += p.spin;
+                p.speedX *= 0.99; // Air resistance
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                ctx.restore();
+
+                if (p.y > canvas.height) particles.splice(i, 1);
+            });
+
+            if (particles.length > 0) requestAnimationFrame(renderConfetti);
+        }
+    </script>
+</body>
+</html>
